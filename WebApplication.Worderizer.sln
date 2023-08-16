@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33502.453
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication.Worderizer", "WebApplication.Worderizer\WebApplication.Worderizer.csproj", "{DDD71324-058F-436F-9C40-FC3F2E7F0D8B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication.Worderizer.Clients", "WebApplication.Worderizer.Clients\WebApplication.Worderizer.Clients.csproj", "{561378AB-C726-4C8A-B592-F23038A581D0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DDD71324-058F-436F-9C40-FC3F2E7F0D8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDD71324-058F-436F-9C40-FC3F2E7F0D8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDD71324-058F-436F-9C40-FC3F2E7F0D8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDD71324-058F-436F-9C40-FC3F2E7F0D8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{561378AB-C726-4C8A-B592-F23038A581D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{561378AB-C726-4C8A-B592-F23038A581D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{561378AB-C726-4C8A-B592-F23038A581D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{561378AB-C726-4C8A-B592-F23038A581D0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {998DD219-75FE-41A1-ACCE-48EF8D0A0E32}
+	EndGlobalSection
+EndGlobal
