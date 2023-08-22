@@ -18,29 +18,33 @@ namespace WebApplication.Worderizer.Controllers
         }
 
         [HttpGet]
-        public async Task<byte[]> FillWordForm(string wordDocTemplatePath, IEnumerable<FormControlItem> models)
+        public Task<byte[]> FillWordForm(string wordDocTemplatePath, IEnumerable<FormControlItem> models)
         {
             using var resultStream = new MemoryStream();
-            using var doc = new WordDocument();
-            using (var wordDocTemplate = new FileStream(wordDocTemplatePath, FileMode.Open))
             {
-                if (wordDocTemplate == null)
-                    throw new ArgumentNullException(nameof(wordDocTemplate));
+                using var doc = new WordDocument();
+                {
+                    using (var wordDocTemplate = new FileStream(wordDocTemplatePath, FileMode.Open))
+                    {
+                        if (wordDocTemplate == null)
+                            throw new ArgumentNullException(nameof(wordDocTemplate));
 
-                if (models == null)
-                    throw new ArgumentNullException(nameof(models));
+                        if (models == null)
+                            throw new ArgumentNullException(nameof(models));
 
-                doc.Open(wordDocTemplate, FormatType.Docx);
+                        doc.Open(wordDocTemplate, FormatType.Docx);
+                    }
+
+                    var controls = GetFormControls(doc);
+                    FillFormControls(controls, models.ToList());
+
+                    doc.Save(resultStream, FormatType.Docx);
+                }
+                return Task.FromResult(resultStream.ToArray());
             }
-
-            var controls = await GetFormControls(doc);
-            await FillFormControls(controls.ToList(), models.ToList());
-
-            doc.Save(resultStream, FormatType.Docx);
-            return resultStream.ToArray();
         }
 
-        private async Task<IEnumerable<CustomFormControl>> GetFormControls(object entity)
+        private IList<CustomFormControl> GetFormControls(object entity)
         {
             var collection = new List<object>();
 
@@ -89,13 +93,13 @@ namespace WebApplication.Worderizer.Controllers
 
             foreach (var item in collection)
             {
-                result.AddRange(await GetFormControls(item));
+                result.AddRange(GetFormControls(item));
             }
 
             return result;
         }
 
-        private async Task FillFormControls(IList<CustomFormControl> controls, IList<FormControlItem> models)
+        private void FillFormControls(IList<CustomFormControl> controls, IList<FormControlItem> models)
         {
             foreach (var model in models)
             {
@@ -103,7 +107,7 @@ namespace WebApplication.Worderizer.Controllers
                 {
                     foreach (var selectedControl in controls.Where(x => x.ContentControlProperties.Title.ToLowerInvariant() == model.Key.ToLowerInvariant()))
                     { 
-                        await FillFormControl(selectedControl, model, models); 
+                        FillFormControl(selectedControl, model, models); 
                     }
                 }
                 catch (Exception e)
@@ -113,7 +117,7 @@ namespace WebApplication.Worderizer.Controllers
             }
         }
 
-        private async Task FillFormControl(CustomFormControl control, FormControlItem model, IList<FormControlItem> models)
+        private void FillFormControl(CustomFormControl control, FormControlItem model, IList<FormControlItem> models)
         {
             if (control == null || model == null)
                 return;
@@ -137,8 +141,8 @@ namespace WebApplication.Worderizer.Controllers
                         FillPicture(control.Picture, bytes);
                     break;
                 case FormControlType.Container:
-                    if (model.Value is int l)
-                        await MultiplyContainer(control, l, models);
+                    if (model.Value is long l)
+                        MultiplyContainer(control, l, models);
                     break;
                 default:
                     _logger.LogWarning($"Unexpected {nameof(FormControlType)} {model.Type}");
@@ -159,7 +163,7 @@ namespace WebApplication.Worderizer.Controllers
             control.Width = image.Width * scaleFactor;
         }
 
-        private async Task MultiplyContainer(CustomFormControl control, long repetitions, IList<FormControlItem> models)
+        private void MultiplyContainer(CustomFormControl control, long repetitions, IList<FormControlItem> models)
         {
             var cloneTarget = (IEntity?)GetParentRecursive<WTableRow>(control.ContentControl) ?? GetParentRecursive<WParagraph>(control.ContentControl);
             if (cloneTarget == null)
@@ -174,13 +178,13 @@ namespace WebApplication.Worderizer.Controllers
             for (var i = 1; i < repetitions; i++)
             {
                 var cloned = cloneTarget.Clone();
-                controls = await GetFormControls(cloned);
-                await ProcessClonedControls(controls.ToList(), i, models);
+                controls = GetFormControls(cloned);
+                ProcessClonedControls(controls.ToList(), i, models);
                 newItems.Add(cloned);
             }
 
-            controls = await GetFormControls(cloneTarget);
-            await ProcessClonedControls(controls.ToList(), 0, models);
+            controls = GetFormControls(cloneTarget);
+            ProcessClonedControls(controls.ToList(), 0, models);
 
             foreach (var item in newItems)
                 parent.ChildEntities.Add(item);
@@ -195,14 +199,14 @@ namespace WebApplication.Worderizer.Controllers
             return GetParentRecursive<TParent>(baseEntity.Owner);
         }
 
-        private async Task ProcessClonedControls(IList<CustomFormControl> controls, int idx, IList<FormControlItem> models)
+        private void ProcessClonedControls(IList<CustomFormControl> controls, int idx, IList<FormControlItem> models)
         {
             foreach (var control in controls)
             {
                 control.ContentControlProperties.Title = control.ContentControlProperties.Title + idx;
             }
 
-            await FillFormControls(controls, models);
+            FillFormControls(controls, models);
         }
     }
 }

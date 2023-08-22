@@ -8,9 +8,10 @@ namespace WebApplication.Worderizer
             var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddNewtonsoftJson();
 
             builder.Services.AddSwaggerDocument(c => { c.Title = typeof(Program).Namespace; });
+            builder.Services.AddSwaggerGenNewtonsoftSupport();
 
             var app = builder.Build();
 
