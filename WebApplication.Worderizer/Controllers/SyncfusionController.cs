@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Syncfusion.DocIO;
 using Syncfusion.DocIO.DLS;
+using Syncfusion.DocIORenderer;
 using Syncfusion.Drawing;
+using Syncfusion.Pdf;
+using Syncfusion.Pdf.Parsing;
 using WebApplication.Worderizer.Models;
 
 namespace WebApplication.Worderizer.Controllers
@@ -42,6 +45,72 @@ namespace WebApplication.Worderizer.Controllers
                 }
                 return Task.FromResult(resultStream.ToArray());
             }
+        }
+
+        [HttpGet]
+        public Task<byte[]> ConvertToPdf(string wordDocPath)
+        {
+            if (wordDocPath == null)
+                throw new ArgumentNullException(nameof(wordDocPath));
+
+            using var resultStream = new MemoryStream();
+            {
+                using var doc = new WordDocument();
+                {
+                    using (var wordDoc = new FileStream(wordDocPath, FileMode.Open))
+                    {
+                        if (wordDoc == null)
+                            throw new ArgumentNullException(nameof(wordDoc));
+
+                        doc.Open(wordDoc, FormatType.Docx);
+                    }
+
+                    PdfDocument pdf;
+                    var renderer = new DocIORenderer
+                    {
+                        Settings =
+                        {
+                            EmbedFonts = true,
+                            PdfConformanceLevel = PdfConformanceLevel.Pdf_A1B,
+                        }
+                    };
+
+                    pdf = renderer.ConvertToPDF(doc);
+                    pdf.Compression = PdfCompressionLevel.Best;
+                    pdf.EnableMemoryOptimization = true;
+                    pdf.Save(resultStream);
+                }
+            }
+            return Task.FromResult(resultStream.ToArray());
+        }
+
+        [HttpGet]
+        public Task<byte[]> MergePdfs(string[] sourcePaths)
+        {
+            if (sourcePaths == null)
+                throw new ArgumentNullException(nameof(sourcePaths));
+
+            using var resultStream = new MemoryStream();
+            {
+                List<PdfLoadedDocument> pdfs = new List<PdfLoadedDocument>();
+                using var pdf = new PdfDocument(PdfConformanceLevel.Pdf_A1B);
+                {
+                    foreach (var sourcePath in sourcePaths)
+                    {
+                        using (var wordPdf = new FileStream(sourcePath, FileMode.Open))
+                        {
+                            if (wordPdf == null)
+                                throw new ArgumentNullException(nameof(wordPdf));
+
+                            pdfs.Add(new PdfLoadedDocument(wordPdf));
+                        }
+                    }
+
+                    var resultPdf = PdfDocumentBase.Merge(pdf, pdfs);
+                    resultPdf.Save(resultStream);
+                }
+            }
+            return Task.FromResult(resultStream.ToArray());
         }
 
         private IList<CustomFormControl> GetFormControls(object entity)
